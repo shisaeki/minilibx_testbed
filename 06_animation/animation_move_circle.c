@@ -28,6 +28,7 @@ typedef struct	s_vars
 	int	center_y;
 	int	vel_x;
 	int	vel_y;
+	int	frame;
 }		t_vars;
 
 int	draw_circle(t_vars *vars)
@@ -52,12 +53,19 @@ int	draw_circle(t_vars *vars)
 
 int	move_circle(t_vars *vars)
 {
-	vars->center_x += vars->vel_x;
-	vars->center_y += vars->vel_y;
-	if (vars->center_x < 0 || vars->center_x > WIN_WIDTH)
-		vars->vel_x *= -1;
-	if (vars->center_y < 0 || vars->center_y > WIN_HEIGHT)
-		vars->vel_y *= -1;
+	vars->frame++;
+	if (vars->frame == 60)
+	{
+		vars->center_x += vars->vel_x;
+		vars->center_y += vars->vel_y;
+		vars->frame = 0;
+	
+		if (vars->center_x < 0 || vars->center_x > WIN_WIDTH)
+			vars->vel_x *= -1;
+		if (vars->center_y < 0 || vars->center_y > WIN_HEIGHT)
+			vars->vel_y *= -1;
+	}
+	draw_circle(vars);
 	return (0);
 }
 
@@ -70,9 +78,10 @@ int main()
 	vars.img.img_ptr = mlx_new_image(vars.mlx.mlx_ptr, IMG_WIDTH, IMG_HEIGHT);
 	vars.img.data = (int *)mlx_get_data_addr(vars.img.img_ptr, &vars.img.bpp, &vars.img.size_l, &vars.img.endian);
 	vars.center_x = 400;
-	vars.center_y = 400;
+	vars.center_y = 300;
 	vars.vel_x = 1;
 	vars.vel_y = 1;
+	vars.frame = 0;
 
 	mlx_loop_hook(vars.mlx.mlx_ptr, move_circle, &vars);
 	mlx_loop(vars.mlx.mlx_ptr);
