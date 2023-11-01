@@ -20,45 +20,55 @@ typedef struct	s_mlx
 	void	*win;
 }		t_mlx;
 
-typedef struct	s_update
+typedef struct	s_vars
 {
-	int	w;
-	int	h;
-	t_img	*img;
-}		t_update;
+	t_mlx	mlx;
+	t_img	img;
+	int		color;
+}			t_vars;
 
-int render_next_frame(void *update)
+int draw_circle(t_vars *vars)
 {
-	update.w = 0;
-	update.h = 0;
+	int	w, h;
+	
+	h = 0;
 	while (h < IMG_HEIGHT)
 	{
 		w = 0;
 		while (w < IMG_WIDTH)
 		{
 			if ((w - 200) * (w - 200) + (h - 200) * (h - 200) <= 40000)
-				(update->img)->data[h * IMG_WIDTH + w] = 0xFF0000;
+				vars->img.data[h * IMG_WIDTH + w] = vars->color;
 			w++;
 		}
 		h++;
 	}
+	mlx_put_image_to_window(vars->mlx.mlx_ptr, vars->mlx.win, vars->img.img_ptr, 200, 200);
+	return (0);
+}
+
+int change_color(t_vars *vars)
+{
+	vars->color += 0X010101;
+	if (vars->color > 0XFFFFFF)
+		vars->color = 0;
+	draw_circle(vars);
+	return (0);
 }
 
 int main()
 {
-	t_mlx		mlx;
-	t_img		img;
-	int		W, h;
-	t_update	update;
+	t_vars	vars;
 	
 
-	mlx.mlx_ptr = mlx_init();
-	mlx.win =mlx_new_window(mlx.mlx_ptr, WIN_WIDTH, WIN_HEIGHT, "animation");
-	img.img_ptr = mlx_new_image(mlx.mlx_ptr, IMG_WIDTH, IMG_HEIGHT);
-	img.data = (int *)mlx_get_data_addr(img.img_ptr, &img.bpp, &img.size_l, &img.endian);
-	update.img = &img;
-	update.w = 0;
-	update.h = 0;
-	mlx_loop_hooks(mlx.mlx_ptr, render_next_frame, update);
-	mlx_loop(mlx.mlx_ptr);
+	vars.mlx.mlx_ptr = mlx_init();
+	vars.mlx.win =mlx_new_window(vars.mlx.mlx_ptr, WIN_WIDTH, WIN_HEIGHT, "animation");
+	vars.img.img_ptr = mlx_new_image(vars.mlx.mlx_ptr, IMG_WIDTH, IMG_HEIGHT);
+	vars.img.data = (int *)mlx_get_data_addr(vars.img.img_ptr, &vars.img.bpp, &vars.img.size_l, &vars.img.endian);
+	vars.color = 0XFF0000;
+	
+	mlx_loop_hook(vars.mlx.mlx_ptr, change_color, &vars);
+	mlx_loop(vars.mlx.mlx_ptr);
+
+	return (0);
 }
