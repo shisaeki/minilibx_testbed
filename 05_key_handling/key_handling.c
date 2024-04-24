@@ -1,25 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "../minilibx-linux/mlx.h"
+#include "stdio.h"
 
 #define WIN_WIDTH  800
 #define WIN_HEIGHT 800
-
-#define IMG_WIDTH  400
-#define IMG_HEIGHT 400
-
-#define KEY_ESC 65307
-#define KEY_R   114
-#define KEY_W	119
-
-typedef struct	s_img
-{
-	void	*img_ptr;
-	int	*data;
-	int	size_l;
-	int	bpp;
-	int	endian;
-}		t_img;
 
 typedef struct	s_mlx
 {
@@ -27,23 +10,58 @@ typedef struct	s_mlx
 	void	*win;
 }		t_mlx;
 
-int key_press(int keycode, t_mlx *mlx)
-{
-	if (keycode == KEY_ESC)
-		exit(0);
-	printf("%d: Key Pressed\n", keycode);
+void render(float factor, t_mlx *mlx);
 
+int key_event(int keycode, t_mlx *mlx)
+{
+	if (keycode == 65307)
+		mlx_destroy_window(mlx->mlx_ptr, mlx->win);
+	else if (keycode == 119)
+		mlx_clear_window(mlx->mlx_ptr, mlx->win);
 	return (0);
 }
 
-int main()
+int mouse_event(int keycode, t_mlx *mlx)
 {
-	t_mlx		mlx;
-	t_img		img;
-	int	w, h;
+	static float factor = 1.0;
+	if (keycode == 4)
+	{
+		factor += 0.1;
+		render(factor, mlx);
+	}
+	else if (keycode == 5)
+	{
+		factor -= 0.1;
+		render(factor, mlx);
+	}
+	return (0);
+}
+
+void render(float factor, t_mlx *mlx)
+{
+	mlx_clear_window(mlx->mlx_ptr, mlx->win);
+	for (int h = 0; h < WIN_HEIGHT; h++)
+	{
+		for (int w = 0; w < WIN_WIDTH; w++)
+		{
+			int x = w - (WIN_WIDTH / 2);
+			int y = h - (WIN_HEIGHT / 2);
+			if (x * x + y * y < (int)(10000 * factor))
+				mlx_pixel_put(mlx->mlx_ptr, mlx->win, w, h, 0xFFFFFF);
+		}
+	}
+}
+
+int main( void )
+{
+	t_mlx	mlx;
 
 	mlx.mlx_ptr = mlx_init();
 	mlx.win = mlx_new_window(mlx.mlx_ptr, WIN_WIDTH, WIN_HEIGHT, "key_handling");
-	mlx_key_hook(mlx.win, &key_press, &mlx);
+
+	render(1.0, &mlx);	
+	mlx_key_hook(mlx.win, key_event, &mlx);
+	mlx_mouse_hook(mlx.win, mouse_event, &mlx);
 	mlx_loop(mlx.mlx_ptr);
+	return (0);
 }
